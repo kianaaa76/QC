@@ -19,10 +19,10 @@ import {
 } from '@material-ui/core';
 // import Toastify from '../../../../utils/toastify';
 import {
-    getProductObjects
+  getProductObjects
 } from 'src/redux/actions/api';
 import { useSelector } from 'react-redux';
-import { Trash } from 'react-feather';
+import { List } from 'react-feather';
 
 const useStyles = makeStyles(theme => ({
   root: {},
@@ -50,7 +50,6 @@ const Results = ({ className, newErrorModal, setNewErrorModal, ...rest }) => {
   });
 
   useEffect(() => {
-    console.warn("KIANAAAA");
     getObjects();
   }, []);
 
@@ -70,22 +69,22 @@ const Results = ({ className, newErrorModal, setNewErrorModal, ...rest }) => {
     });
   };
 
-//   const handleLimitChange = event => {
-//     setLimit(event.target.value);
-//   };
+  const handleLimitChange = event => {
+    setLimit(event.target.value);
+  };
 
-//   const handlePageChange = state => {
-//     console.warn('state', state);
-//     if (state == 'pre') {
-//       if (page > 1) {
-//         setPage(page - 1);
-//       }
-//     } else {
-//       if (page < totalPage) {
-//         setPage(page + 1);
-//       }
-//     }
-//   };
+  const handlePageChange = state => {
+    console.warn('state', state);
+    if (state == 'pre') {
+      if (page > 1) {
+        setPage(page - 1);
+      }
+    } else {
+      if (page < totalPage) {
+        setPage(page + 1);
+      }
+    }
+  };
 
 //   const handleDeleteError = () => {
 //     setDeleteLoading(true);
@@ -143,44 +142,44 @@ const Results = ({ className, newErrorModal, setNewErrorModal, ...rest }) => {
         justifyContent: 'center'
       }}
     >
-      <CircularProgress />
+      <CircularProgress/>
     </div>
   ) : (
     <Card className={clsx(classes.root, className)} {...rest}>
       <PerfectScrollbar>
         <Box minWidth={1050}>
-          {/* <Table> */}
-            {/* <TableHead>
+          <Table>
+            <TableHead>
               <TableRow>
                 <TableCell>ID</TableCell>
-                <TableCell>نوع خطا</TableCell>
-                <TableCell>تعداد خطا</TableCell>
-                <TableCell>حذف خطا</TableCell>
+                <TableCell>ERP Name</TableCell>
+                <TableCell>White Print</TableCell>
+                <TableCell>Versions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {errorList.slice(0, limit).map(error => (
-                <TableRow hover key={error.id}>
-                  <TableCell>{error.id}</TableCell>
-                  <TableCell>{error.errorType}</TableCell>
-                  <TableCell>{error.stationCount}</TableCell>
+              {productObjectList.slice(0, limit).map(object => (
+                <TableRow hover key={object.id}>
+                  <TableCell>{object.id}</TableCell>
+                  <TableCell>{object.erpName}</TableCell>
+                  <TableCell>{object.whitePrint}</TableCell>
                   <TableCell>
                     <Button
                       onClick={() => {
                         setOpenDeleteModal(true);
-                        setSelectedError(error);
+                        setSelectedError(object);
                       }}
                     >
-                      <Trash size="20" />
+                      <List size="20"/>
                     </Button>
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
-          </Table> */}
+          </Table>
         </Box>
       </PerfectScrollbar>
-      {/* <TablePagination
+      <TablePagination
         backIconButtonProps={{
           onClick: () => handlePageChange('next')
         }}
@@ -191,7 +190,8 @@ const Results = ({ className, newErrorModal, setNewErrorModal, ...rest }) => {
         nextIconButtonProps={{
           onClick: () => handlePageChange('pre')
         }}
-        labelDisplayedRows={() => {}}
+        labelDisplayedRows={() => {
+        }}
         component="div"
         count={totalItems}
         onChangePage={(event, page) => console.warn('ppppp', page)}
@@ -199,7 +199,7 @@ const Results = ({ className, newErrorModal, setNewErrorModal, ...rest }) => {
         page={page}
         rowsPerPage={limit}
         rowsPerPageOptions={[5, 10, 25]}
-      /> */}
+      />
       {/* <Modal open={openDeleteModal} onClose={() => setOpenDeleteModal(false)}>
         <div
           style={{
@@ -309,8 +309,7 @@ const Results = ({ className, newErrorModal, setNewErrorModal, ...rest }) => {
 };
 
 Results.propTypes = {
-  className: PropTypes.string,
-  customers: PropTypes.array.isRequired
+  className: PropTypes.string
 };
 
 export default Results;

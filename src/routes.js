@@ -12,7 +12,8 @@ import ProductListView from 'src/views/product/ProductListView';
 import ErrorListView from 'src/views/QCErrors/ErrorListView';
 import RegisterView from 'src/views/auth/RegisterView';
 import SettingsView from 'src/views/settings/SettingsView';
-import productObject from "src/views/ProductObject/ProductObjectView";
+import ProductObject from 'src/views/ProductObject/ProductObjectView';
+import ErrorTypes from 'src/views/ErrorType/ErrorTypeView';
 
 const routes = [
   {
@@ -28,8 +29,9 @@ const routes = [
       { path: 'dashboard', element: <DashboardView /> },
       { path: 'products', element: <ProductListView /> },
       { path: 'settings', element: <SettingsView /> },
-      { path: 'errors', element: <ErrorListView /> },
-      { path: 'productObject', element: <productObject /> },
+      { path: 'qcErrors', element: <ErrorListView /> },
+      { path: 'errorType', element: <ErrorTypes /> },
+      { path: 'productObject', element: <ProductObject /> },
       { path: '*', element: <Navigate to="/404" /> }
     ]
   },

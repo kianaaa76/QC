@@ -121,40 +121,40 @@ const Toolbar = ({
       <Box mt={3}>
         <Card>
           <CardContent>
-            <FormControl
-              className={classes.formControl}
-              style={{ marginLeft: '5%', marginRight: '5%' }}
-            >
-              <InputLabel id="demo-simple-select-label">خط تولید</InputLabel>
-              <Select
-                style={{ minWidth: 120 }}
-                labelId="label"
-                id="select"
-                value={!!selectedProductLine.id ? selectedProductLine.id : ''}
-                onChange={handleChangeProductLine}
-              >
-                {productLineList.map(item => (
-                  <MenuItem value={item.id}>{item.name}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <FormControl
-              className={classes.formControl}
-              style={{ marginLeft: '5%', marginRight: '5%' }}
-            >
-              <InputLabel id="demo-simple-select-label">ایستکاه</InputLabel>
-              <Select
-                style={{ minWidth: 120 }}
-                labelId="label"
-                id="select"
-                value={!!selectedStation.id ? selectedStation.id : ''}
-                onChange={handleChangeStation}
-              >
-                {stationList.map(item => (
-                  <MenuItem value={item.id}>{item.name}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            {/*<FormControl*/}
+            {/*  className={classes.formControl}*/}
+            {/*  style={{ marginLeft: '5%', marginRight: '5%' }}*/}
+            {/*>*/}
+            {/*  <InputLabel id="demo-simple-select-label">خط تولید</InputLabel>*/}
+            {/*  <Select*/}
+            {/*    style={{ minWidth: 120 }}*/}
+            {/*    labelId="label"*/}
+            {/*    id="select"*/}
+            {/*    value={!!selectedProductLine.id ? selectedProductLine.id : ''}*/}
+            {/*    onChange={handleChangeProductLine}*/}
+            {/*  >*/}
+            {/*    {productLineList.map(item => (*/}
+            {/*      <MenuItem value={item.id}>{item.name}</MenuItem>*/}
+            {/*    ))}*/}
+            {/*  </Select>*/}
+            {/*</FormControl>*/}
+            {/*<FormControl*/}
+            {/*  className={classes.formControl}*/}
+            {/*  style={{ marginLeft: '5%', marginRight: '5%' }}*/}
+            {/*>*/}
+            {/*  <InputLabel id="demo-simple-select-label">ایستکاه</InputLabel>*/}
+            {/*  <Select*/}
+            {/*    style={{ minWidth: 120 }}*/}
+            {/*    labelId="label"*/}
+            {/*    id="select"*/}
+            {/*    value={!!selectedStation.id ? selectedStation.id : ''}*/}
+            {/*    onChange={handleChangeStation}*/}
+            {/*  >*/}
+            {/*    {stationList.map(item => (*/}
+            {/*      <MenuItem value={item.id}>{item.name}</MenuItem>*/}
+            {/*    ))}*/}
+            {/*  </Select>*/}
+            {/*</FormControl>*/}
             {/* <FormControl
               className={classes.formControl}
               style={{ marginLeft: '5%', marginRight: '5%' }}

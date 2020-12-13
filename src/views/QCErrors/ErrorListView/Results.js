@@ -17,12 +17,12 @@ import {
   Modal,
   TextField
 } from '@material-ui/core';
-import Toastify from '../../../../utils/toastify';
+import Toastify from '../../../utils/toastify';
 import {
   getAllQCErrors,
   deleteQCError,
   newQCError
-} from '../../../../redux/actions/api';
+} from '../../../redux/actions/api';
 import { useSelector } from 'react-redux';
 import { Trash } from 'react-feather';
 

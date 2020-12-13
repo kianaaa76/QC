@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Container, makeStyles } from '@material-ui/core';
 import Page from 'src/components/Page';
-import AdminResults from './Results';
-import AdminToolbar from './Toolbar';
-
+import Results from './Results';
+import Toolbar from './Toolbar';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -24,7 +23,7 @@ const CustomerListView = () => {
   return (
     <Page className={classes.root} title="Errors">
       <Container maxWidth={false}>
-        <AdminToolbar
+        <Toolbar
           setOpenModal={value => setOpenNewErrorModal(value)}
           selectedProductLine={clientViewProductLine}
           setSelectedProductLine={value => {
@@ -39,7 +38,7 @@ const CustomerListView = () => {
           setSelectedDate={value => setClientViewDateOfError(value)}
         />
         <Box mt={3}>
-          <AdminResults
+          <Results
             selectedProductLine={clientViewProductLine}
             selectedStation={clientViewStation}
             newErrorModal={openNewErrorModal}

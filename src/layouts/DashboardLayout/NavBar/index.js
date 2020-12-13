@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
+import {useSelector} from 'react-redux';
 import PropTypes from 'prop-types';
 import {
   Avatar,
@@ -44,15 +45,10 @@ const items = [
     icon: ShoppingBagIcon,
     title: 'مدیریت خط تولید QC'
   },
-  // {
-  //   href: '/app/',
-  //   icon: LineManagementIcon,
-  //   title: 'مدیریت خطوط'
-  // },
   {
     href: '/app/settings',
     icon: StationIcon,
-    title: 'مدیریت ایستگاه‌ها'
+    title: 'مدیریت نقش ها'
   },
   {
     href: '/app/errors',
@@ -95,13 +91,63 @@ const useStyles = makeStyles(() => ({
 const NavBar = ({ onMobileClose, openMobile }) => {
   const classes = useStyles();
   const location = useLocation();
-
+  const [showingTabs, setShowingTabs] = useState([]);
+const selector = useSelector(state=>state);
   useEffect(() => {
     if (openMobile && onMobileClose) {
       onMobileClose();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
+
+  const checkTabKey = (key)=>{
+    switch (key) {
+      case 'ErrorType':
+        return {
+          href: '/app/qcErrors',
+          icon: AlertCircleIcon,
+          title: 'مدیریت خطاهای QC'
+        };
+      case 'ProductLine':
+        return {
+          href: '/app/products',
+          icon: ShoppingBagIcon,
+          title: 'مدیریت خط تولید QC'
+        };
+      case 'QcError':
+        return {
+          href: '/app/errorType',
+          icon: ShoppingBagIcon,
+          title: 'خطاها'
+        };
+      case 'ProductObject':
+        return {
+          href: '/app/productObject',
+          icon: ShoppingBagIcon,
+          title: 'product object'
+        };
+      case 'AdminManager':
+        return {
+          href: '/app/customers',
+          icon: UsersIcon,
+          title: 'مدیریت ادمین ها'
+        };
+      case 'RoleManager':
+        return {
+          href: '/app/settings',
+          icon: StationIcon,
+          title: 'مدیریت نقش ها'
+        };
+    }
+  }
+
+  useEffect(()=>{
+    let tabs =[];
+    selector.tabs.map(item=>{
+      tabs.push(checkTabKey(item.key))
+    });
+    setShowingTabs(tabs);
+  },[])
 
   const content = (
     <Box
@@ -128,17 +174,11 @@ const NavBar = ({ onMobileClose, openMobile }) => {
         >
           {user.name}
         </Typography>
-        {/* <Typography
-          color="textSecondary"
-          variant="body2"
-        >
-          {user.jobTitle}
-        </Typography> */}
       </Box>
       <Divider />
       <Box p={2}>
         <List>
-          {items.map((item) => (
+          {showingTabs.length > 0 && showingTabs.map((item) => (
             <NavItem
               href={item.href}
               key={item.title}

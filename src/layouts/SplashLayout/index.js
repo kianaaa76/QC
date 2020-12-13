@@ -12,7 +12,7 @@ const Splash = () => {
   useEffect(() => {
     if (!!selector.access_token) {
       checkToken(selector.access_token).then(data => {
-        console.warn('DDDD', data);
+        console.warn('DDDD', data.data);
         if (data.statusCode == 200) {
           dispatch({
             type: GET_TABS,

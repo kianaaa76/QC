@@ -10,8 +10,10 @@ import {
   Select,
   MenuItem,
   FormControl,
-  InputLabel
+  InputLabel,
+  TextField
 } from '@material-ui/core';
+import Autocomplete from '@material-ui/lab/Autocomplete';
 import {
   getProductLinesforDropDown,
   getStationsOfProductLineIdForDropDown,
@@ -125,18 +127,17 @@ const Toolbar = ({
               className={classes.formControl}
               style={{ marginLeft: '5%', marginRight: '5%' }}
             >
-              <InputLabel id="demo-simple-select-label">خط تولید</InputLabel>
-              <Select
-                style={{ minWidth: 120 }}
-                labelId="label"
-                id="select"
-                value={!!selectedProductLine.id ? selectedProductLine.id : ''}
-                onChange={handleChangeProductLine}
-              >
-                {productLineList.map(item => (
-                  <MenuItem value={item.id}>{item.name}</MenuItem>
-                ))}
-              </Select>
+              {/*<InputLabel id="demo-simple-select-label">خط تولید</InputLabel>*/}
+              <Autocomplete
+                options={productLineList}
+                style={{ minWidth: 200 }}
+                // labelId="label"
+                // id= ""
+                getOptionLabel={(option) => option.name}
+                renderInput={(params) => <TextField {...params} label="خط تولید" variant="outlined" />}
+                // value={!!selectedProductLine.id ? selectedProductLine.id : ''}
+                // onChange={handleChangeProductLine}
+              />
             </FormControl>
             <FormControl
               className={classes.formControl}

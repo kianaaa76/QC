@@ -70,9 +70,9 @@ export const SearchError = (token, errorType) => {
     },
     body: msg
   }).then(response => response.json());
-}
+};
 
-export const getProductLinesforDropDown = (token)=>{
+export const getProductLinesforDropDown = (token) => {
   return fetch(`${LOCAL_HOST}/Admin/QC/ProductLine`, {
     method: 'GET',
     headers: {
@@ -80,7 +80,7 @@ export const getProductLinesforDropDown = (token)=>{
       Authorization: `bearer ${token}`
     }
   }).then(response => response.json());
-}
+};
 
 export const getStationsOfProductLineIdForDropDown = (token, productLineId) => {
   return fetch(`${LOCAL_HOST}/Admin/QC/ProductLine/WorkStations?ProductLineId=${productLineId}`, {
@@ -90,7 +90,7 @@ export const getStationsOfProductLineIdForDropDown = (token, productLineId) => {
       Authorization: `bearer ${token}`
     }
   }).then(response => response.json());
-}
+};
 
 
 export const getErrortypesOfAProductLine = (token, productLineId) => {
@@ -101,7 +101,7 @@ export const getErrortypesOfAProductLine = (token, productLineId) => {
       Authorization: `bearer ${token}`
     }
   }).then(response => response.json());
-}
+};
 
 
 export const getMiddleProductsOfAProductLine = (token, productLineId) => {
@@ -112,14 +112,14 @@ export const getMiddleProductsOfAProductLine = (token, productLineId) => {
       Authorization: `bearer ${token}`
     }
   }).then(response => response.json());
-}
+};
 
-export const getProductObjects = (token, page, take)=>{
-  return fetch(`${LOCAL_HOST}/Admin/Qc/Page=${page}&Take=${take}`, {
+export const getProductObjects = (token, page, take) => {
+  return fetch(`${LOCAL_HOST}/Admin/Qc/ProductObject?Page=${page}&Take=${take}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `bearer ${token}`
     }
-  }).then(response => response.json());
-}
+  }).then((response) => response.json());
+};
