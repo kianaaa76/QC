@@ -10,21 +10,27 @@ import {
   TableBody,
   TableCell,
   TableHead,
-  TablePagination,
   TableRow,
   makeStyles,
   CircularProgress,
   Modal,
-  TextField
+  TextField,
+  Checkbox
 } from '@material-ui/core';
 import Toastify from '../../../utils/toastify';
+import Autocomplete from '@material-ui/lab/Autocomplete';
 import {
   getAllQCErrors,
   deleteQCError,
-  newQCError
+  newQCError,
+  getErrortypesOfAProductLine,
+  getMiddleProductsOfAProductLine,
+  getAllObjects,
+  getObjectVersions
 } from '../../../redux/actions/api';
 import { useSelector } from 'react-redux';
-import { Trash } from 'react-feather';
+import { Trash, Check, X } from 'react-feather';
+import TablePagination from "src/utils/TablePagination";
 
 const useStyles = makeStyles(theme => ({
   root: {},
@@ -33,12 +39,20 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-const Results = ({ className, newErrorModal, setNewErrorModal, ...rest }) => {
+const Results = ({
+  className,
+  newErrorModal,
+  setNewErrorModal,
+  selectedProductLine,
+  selectedStation,
+  selectedDate,
+  ...rest
+}) => {
   const selector = useSelector(state => state);
   const classes = useStyles();
   const [errorList, setErrorList] = useState([]);
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
+  const [limit, setLimit] = useState(1);
   const [totalPage, setTotalPage] = useState(0);
   const [totalItems, setTotalItems] = useState(0);
   const [listLoading, setListLoading] = useState(true);
@@ -46,38 +60,110 @@ const Results = ({ className, newErrorModal, setNewErrorModal, ...rest }) => {
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [newErrorLoading, setNewErrorLoading] = useState(false);
-  const [newError, setNewError] = useState({
-    maxErrorNum: '',
-    errorType: ''
-  });
+  const [
+    selectedErrorTypeOfProductLine,
+    setSelectedErrorTypeOFPRoductLine
+  ] = useState('');
+  const [
+    selectedMiddleProductOfProductLine,
+    setSelectedMiddleProductOfProductLine
+  ] = useState('');
+  const [selectedObject, setSelectedObject] = useState('');
+  const [selectedObjectVersion, setSelectedObjectVersion] = useState('');
+  const [errorCount, setErrorCount] = useState('');
+  const [description, setDescription] = useState('');
+  const [errorTypeList, setErrorTypeList] = useState([]);
+  const [middleProductList, setMiddleProductList] = useState([]);
+  const [objectsList, setObjectsList] = useState([]);
+  const [objectVersionList, setObjectVersionList] = useState([]);
+  const [objectsPage, setObjectsPage] = useState(1);
+  const [isMiddleProductOutSourced, setIsMiddleProductOutSourced] = useState(
+    false
+  );
+
 
   useEffect(() => {
     getErrors();
   }, [page, limit]);
 
+  useEffect(() => {
+    getObjects();
+  }, []);
+
+  useEffect(() => {
+    getErrortypesOfAProductLine(
+      selector.access_token,
+      selector.selectedProductLineOfErrorTab
+    ).then(data => {
+      if (data.statusCode === 200) {
+        setErrorTypeList(data.data);
+      } else {
+        setErrorTypeList([]);
+        //do something in case of not getting success!
+      }
+    });
+
+    getMiddleProductsOfAProductLine(
+      selector.access_token,
+      selector.selectedProductLineOfErrorTab
+    ).then(data => {
+      if (data.statusCode === 200) {
+        setMiddleProductList(data.data);
+      } else {
+        setMiddleProductList([]);
+        //do something in case of not getting success!
+      }
+    });
+  }, [selector]);
+
+  const handleSelectObject = value => {
+    setSelectedObject(value);
+    getObjectVersions(selector.access_token, value.id).then(data => {
+      if (data.statusCode == 200) {
+        setObjectVersionList(data.data);
+      } else {
+        //do something if request failed...
+      }
+    });
+  };
+
+  const getObjects = () => {
+    let list = objectsList;
+    getAllObjects(selector.access_token, objectsPage).then(data => {
+      if (data.statusCode == 200) {
+        data.data.map(item => {
+          list.push(item);
+        });
+      } else {
+        //do something if request failed...
+      }
+    });
+    setObjectsList(list);
+  };
+
   const getErrors = () => {
     setListLoading(true);
     getAllQCErrors(selector.access_token, page, limit).then(data => {
-      console.warn('KKKK', data);
-      if (data.statusCode == 200) {
+      if (data.statusCode === 200) {
         setErrorList(data.data.items);
         setTotalPage(data.data.totalPages);
         setTotalItems(data.data.totalItems);
         setListLoading(false);
-      } else if (data.statusCode == 401) {
+      } else if (data.statusCode === 401) {
         setErrorList([]);
         setListLoading(false);
       }
     });
   };
 
+  useEffect(() => {}, []);
+
   const handleLimitChange = event => {
     setLimit(event.target.value);
   };
 
   const handlePageChange = state => {
-    console.warn('state', state);
-    if (state == 'pre') {
+    if (state === 'pre') {
       if (page > 1) {
         setPage(page - 1);
       }
@@ -91,11 +177,11 @@ const Results = ({ className, newErrorModal, setNewErrorModal, ...rest }) => {
   const handleDeleteError = () => {
     setDeleteLoading(true);
     deleteQCError(selector.access_token, selectedError.id).then(data => {
-      if (data.statusCode == 200) {
+      if (data.statusCode === 200) {
         setDeleteLoading(false);
         setOpenDeleteModal(false);
         Toastify.success('خطای مورد نظر با موفقیت حذف شد.');
-      } else if (data.statusCode == 401) {
+      } else if (data.statusCode === 401) {
         setDeleteLoading(false);
         setOpenDeleteModal(false);
       } else {
@@ -105,34 +191,96 @@ const Results = ({ className, newErrorModal, setNewErrorModal, ...rest }) => {
       }
       getErrors();
     });
-  };
-
-  const handleNewErrorChange = event => {
-    if (event.target.name == 'errorType') {
-      setNewError({ ...newError, errorType: event.target.value });
-    } else {
-      setNewError({ ...newError, maxErrorNum: event.target.value });
-    }
   };
 
   const addNewQcError = () => {
     setNewErrorLoading(true);
-    newQCError(
-      selector.access_token,
-      newError.errorType,
-      newError.maxErrorNum
-    ).then(data => {
-      setNewErrorModal(false);
+    if (middleProductList.length == 0) {
       setNewErrorLoading(false);
-      if (data.statusCode == 200) {
-        Toastify.success('خطای جدید با موفقیت اضافه شد.');
-        setNewError({ errorType: '', maxErrorNum: '' });
-      } else if (data.statusCode == 401) {
-      } else {
-        Toastify.error('مشکلی پیش آمد. لطفا دوباره تلاش کنید.');
-      }
-      getErrors();
-    });
+      setNewErrorModal(false);
+      Toastify.error(
+        'امکان ثبت خطا برای این خط تولید به دلیل عدم وجود محصول میانی وجود ندارد.'
+      );
+    } else if (errorTypeList.length==0){
+      setNewErrorLoading(false);
+      setNewErrorModal(false);
+      Toastify.error(
+        'امکان ثبت خطا برای این خط تولید به دلیل عدم وجود نوع خطا وجود ندارد.'
+      );
+    } else if (!selectedProductLine) {
+      setNewErrorLoading(false);
+      setNewErrorModal(false);
+      Toastify.error('لطفا خط تولید را تعیین کنید.');
+    } else if (selectedDate.length == 0) {
+      setNewErrorLoading(false);
+      setNewErrorModal(false);
+      Toastify.error('لطفا تاریخ ثبت خطا را تعیین کنید.');
+    } else if (!selectedStation) {
+      setNewErrorLoading(false);
+      setNewErrorModal(false);
+      Toastify.error('لطفا ایستگاه ثبت خطا را تعیین کنید.');
+    } else if (!selectedErrorTypeOfProductLine) {
+      setNewErrorLoading(false);
+      setNewErrorModal(false);
+      Toastify.error('لطفا نوع خطا را تعیین کنید.');
+    } else if (errorCount.length == 0) {
+      setNewErrorLoading(false);
+      setNewErrorModal(false);
+      Toastify.error('لطفا تعداد خطا را تعیین کنید.');
+    } else if (!selectedMiddleProductOfProductLine) {
+      setNewErrorLoading(false);
+      setNewErrorModal(false);
+      Toastify.error('لطفا محصول میانی خطا را تعیین کنید.');
+    } else if (description.length == 0) {
+      setNewErrorLoading(false);
+      setNewErrorModal(false);
+      Toastify.error('لطفا توضیحات ثبت خطا را تعیین کنید.');
+    } else if (!selectedObject) {
+      setNewErrorLoading(false);
+      setNewErrorModal(false);
+      Toastify.error('لطفا object خطا را تعیین کنید.');
+    } else if (!selectedObject) {
+      setNewErrorLoading(false);
+      setNewErrorModal(false);
+      Toastify.error('لطفا ورژن object خطا را تعیین کنید.');
+    } else {
+      newQCError(
+        selector.access_token,
+        selectedProductLine.id,
+        !!selectedObject ? selectedObject.id : '',
+        errorCount,
+        description,
+        selectedDate,
+        isMiddleProductOutSourced,
+        !!selectedErrorTypeOfProductLine
+          ? selectedErrorTypeOfProductLine.errorId
+          : 0,
+        !!selectedMiddleProductOfProductLine
+          ? selectedMiddleProductOfProductLine.id
+          : 0,
+        selectedStation.id,
+        !!selectedObjectVersion ? selectedObjectVersion.versionId : 0
+      ).then(data => {
+        setNewErrorModal(false);
+        setNewErrorLoading(false);
+        if (data.statusCode === 200) {
+          Toastify.success('خطای جدید با موفقیت اضافه شد.');
+
+        } else if (data.statusCode === 401) {
+        } else {
+          Toastify.error('مشکلی پیش آمد. لطفا دوباره تلاش کنید.');
+        }
+        getErrors();
+      });
+    }
+  };
+
+  const handleChangeErrorTypeOfProductLine = value => {
+    setSelectedErrorTypeOFPRoductLine(value);
+  };
+
+  const handleChangeMiddleProduct = value => {
+    setSelectedMiddleProductOfProductLine(value);
   };
 
   return listLoading ? (
@@ -153,18 +301,38 @@ const Results = ({ className, newErrorModal, setNewErrorModal, ...rest }) => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>ID</TableCell>
-                <TableCell>نوع خطا</TableCell>
-                <TableCell>تعداد خطا</TableCell>
-                <TableCell>حذف خطا</TableCell>
+                <TableCell style={{textAlign:"center"}}>ID</TableCell>
+                <TableCell style={{textAlign:"center"}}>نوع خطا</TableCell>
+                <TableCell style={{textAlign:"center"}}>تعداد خطا</TableCell>
+                <TableCell style={{textAlign:"center"}}>تاریخ</TableCell>
+                <TableCell style={{textAlign:"center"}}>محصول میانی برون سپاری شده</TableCell>
+                <TableCell style={{textAlign:"center"}}>نام محصول میانی</TableCell>
+                <TableCell style={{textAlign:"center"}}>نام ایستگاه</TableCell>
+                <TableCell style={{textAlign:"center"}}>نام شئ</TableCell>
+                <TableCell style={{textAlign:"center"}}>نام نسخه شئ</TableCell>
+                <TableCell style={{textAlign:"center"}}>نام کاربر</TableCell>
+                <TableCell style={{textAlign:"center"}}>حذف خطا</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {errorList.slice(0, limit).map(error => (
                 <TableRow hover key={error.id}>
                   <TableCell>{error.id}</TableCell>
-                  <TableCell>{error.errorType}</TableCell>
-                  <TableCell>{error.stationCount}</TableCell>
+                  <TableCell>{error.errorTypeName}</TableCell>
+                  <TableCell>{error.errorCount}</TableCell>
+                  <TableCell>{error.date}</TableCell>
+                  <TableCell align="center">
+                    {error.isMiddleProductOutSourced ? (
+                      <Check size="20" style={{ alignSelf: 'center' }} />
+                    ) : (
+                      <X size="20" />
+                    )}
+                  </TableCell>
+                  <TableCell>{error.middleProductName}</TableCell>
+                  <TableCell>{error.workStationName}</TableCell>
+                  <TableCell>{error.objectName}</TableCell>
+                  <TableCell>{error.objectVersionName}</TableCell>
+                  <TableCell>{error.userName}</TableCell>
                   <TableCell>
                     <Button
                       onClick={() => {
@@ -181,25 +349,13 @@ const Results = ({ className, newErrorModal, setNewErrorModal, ...rest }) => {
           </Table>
         </Box>
       </PerfectScrollbar>
-      <TablePagination
-        backIconButtonProps={{
-          onClick: () => handlePageChange('next')
-        }}
-        nextIconButtonProps={{ disabled: false }}
-        backIconButtonProps={{ disabled: false }}
-        backIconButtonText="بعدی"
-        nextIconButtonText="قبلی"
-        nextIconButtonProps={{
-          onClick: () => handlePageChange('pre')
-        }}
-        labelDisplayedRows={() => {}}
-        component="div"
-        count={totalItems}
-        onChangePage={(event, page) => console.warn('ppppp', page)}
-        onChangeRowsPerPage={handleLimitChange}
-        page={page}
-        rowsPerPage={limit}
-        rowsPerPageOptions={[5, 10, 25]}
+      <TablePagination 
+        currentPage={page}
+        totalPages={totalPage}
+        take={limit}
+        changePage={handlePageChange}
+        changeTake={handleLimitChange}
+        totalItems={totalItems}
       />
       <Modal open={openDeleteModal} onClose={() => setOpenDeleteModal(false)}>
         <div
@@ -266,24 +422,167 @@ const Results = ({ className, newErrorModal, setNewErrorModal, ...rest }) => {
           <br />
           <hr />
           <br />
+          <Box display="flex" flexDirection="row">
+            <Box
+              display="flex"
+              flexDirection="row"
+              style={{ marginLeft: 15, marginRight: 15 }}
+            >
+              <p textAlign="right" style={{ width: 65 }}>
+                خط تولید:{' '}
+              </p>
+              <p>
+                {!!selectedProductLine && !!selectedProductLine.name
+                  ? selectedProductLine.name
+                  : '-'}
+              </p>
+            </Box>
+            <Box
+              display="flex"
+              flexDirection="row"
+              style={{ marginLeft: 15, marginRight: 15 }}
+            >
+              <p textAlign="right" style={{ width: 65 }}>
+                ایستگاه:{' '}
+              </p>
+              <p>{!!selectedStation ? selectedStation.name : '-'}</p>
+            </Box>
+            <Box
+              display="flex"
+              flexDirection="row"
+              style={{ marginLeft: 15, marginRight: 15 }}
+            >
+              <p textAlign="right" style={{ width: 65 }}>
+                تاریخ:{' '}
+              </p>
+              <p>{!!selectedDate ? selectedDate : '-'}</p>
+            </Box>
+          </Box>
+          <br />
+          <br />
+          <Box display="flex" flexDirection="row">
+            <Box
+              display="flex"
+              flexDirection="row"
+              style={{ marginLeft: 30, marginRight: 15, alignItems: 'center' }}
+            >
+              <Autocomplete
+                options={errorTypeList}
+                style={{ minWidth: 200 }}
+                id="errorType"
+                getOptionLabel={option => option.errorType}
+                renderInput={params => (
+                  <TextField {...params} label="نوع خطا" variant="outlined" />
+                )}
+                onChange={(event, newValue) =>
+                  handleChangeErrorTypeOfProductLine(newValue)
+                }
+              />
+            </Box>
+            <Box
+              display="flex"
+              flexDirection="row"
+              style={{ marginLeft: 15, marginRight: 30, alignItems: 'center' }}
+            >
+              {/* <p textAlign="right" style={{ width: 100 }}>
+                تعداد خطا:
+              </p> */}
+              <TextField
+                id="standard-basic"
+                label="تعداد خطا"
+                style={{ width: 200 }}
+                onChange={event => setErrorCount(event.target.value)}
+              />
+            </Box>
+          </Box>
+          <br />
+          <br />
+          <Box
+            display="flex"
+            flexDirection="row"
+            style={{ alignItems: 'center' }}
+          >
+            <Box
+              display="flex"
+              flexDirection="row"
+              style={{ marginLeft: 30, marginRight: 15, alignItems: 'center' }}
+            >
+              <Autocomplete
+                options={middleProductList}
+                style={{ minWidth: 200 }}
+                id="middleProduct"
+                getOptionLabel={option => option.name}
+                renderInput={params => (
+                  <TextField
+                    {...params}
+                    label="محصول میانی"
+                    variant="outlined"
+                  />
+                )}
+                onChange={(event, newValue) =>
+                  handleChangeMiddleProduct(newValue)
+                }
+              />
+            </Box>
+
+            <Checkbox
+              value="checkedA"
+              inputProps={{ 'aria-label': 'Checkbox A' }}
+              onChange={(event, newValue) =>
+                setIsMiddleProductOutSourced(newValue)
+              }
+            />
+            <p>محصول میانی برون سپاری شده</p>
+          </Box>
+          <br />
+          <br />
+          <Box display="flex" flexDirection="row">
+            <Box
+              display="flex"
+              flexDirection="row"
+              style={{ marginLeft: 30, marginRight: 15, alignItems: 'center' }}
+            >
+              <Autocomplete
+                options={objectsList}
+                style={{ minWidth: 200 }}
+                id="objects"
+                getOptionLabel={option => option.erpName}
+                renderInput={params => (
+                  <TextField {...params} label="Object" variant="outlined" />
+                )}
+                onChange={(event, newValue) => handleSelectObject(newValue)}
+              />
+            </Box>
+            <Box
+              display="flex"
+              flexDirection="row"
+              style={{ marginLeft: 15, marginRight: 30, alignItems: 'center' }}
+            >
+              <Autocomplete
+                options={objectVersionList}
+                style={{ minWidth: 200 }}
+                id="objectVersion"
+                getOptionLabel={option => option.versionName}
+                renderInput={params => (
+                  <TextField {...params} label="Object Version" variant="outlined" />
+                )}
+                onChange={(event, newValue) => {
+                  setSelectedObjectVersion(newValue);
+                }}
+              />
+            </Box>
+          </Box>
+          <br />
           <TextField
+            multiline
             fullWidth
-            label="نوع خطا"
+            label="توضیحات"
             margin="normal"
-            name="errorType"
-            onChange={event => handleNewErrorChange(event)}
+            name="description"
+            onChange={event => {
+              setDescription(event.target.value);
+            }}
             type="text"
-            value={newError.errorType}
-            variant="outlined"
-          />
-          <TextField
-            fullWidth
-            label="حداکثر تعداد خطا"
-            margin="normal"
-            name="maxErrorNum"
-            onChange={event => handleNewErrorChange(event)}
-            type="text"
-            value={newError.maxErrorNum}
             variant="outlined"
           />
           <Box my={2}>
@@ -296,11 +595,7 @@ const Results = ({ className, newErrorModal, setNewErrorModal, ...rest }) => {
               variant="contained"
               onClick={addNewQcError}
             >
-              {newErrorLoading ? (
-                <CircularProgress color="whit" />
-              ) : (
-                <p>ثبت</p>
-              )}
+              {newErrorLoading ? <CircularProgress color="whit" /> : <p>ثبت</p>}
             </Button>
           </Box>
         </div>
@@ -310,8 +605,7 @@ const Results = ({ className, newErrorModal, setNewErrorModal, ...rest }) => {
 };
 
 Results.propTypes = {
-  className: PropTypes.string,
-  customers: PropTypes.array.isRequired
+  className: PropTypes.string
 };
 
 export default Results;

@@ -17,12 +17,15 @@ import {
   Modal,
   TextField
 } from '@material-ui/core';
-// import Toastify from '../../../../utils/toastify';
+import Toastify from '../../../utils/toastify';
 import {
-  getProductObjects
+  getProductObjects,
+  deleteProductObject,
+  newProductObject,
+  editProductObject
 } from 'src/redux/actions/api';
 import { useSelector } from 'react-redux';
-import { List } from 'react-feather';
+import { List, Trash, Edit } from 'react-feather';
 
 const useStyles = makeStyles(theme => ({
   root: {},
@@ -31,7 +34,7 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-const Results = ({ className, newErrorModal, setNewErrorModal, ...rest }) => {
+const Results = ({ className, modalPurpose, setModalPurpose, ...rest }) => {
   const selector = useSelector(state => state);
   const classes = useStyles();
   const [productObjectList, setProductObjectList] = useState([]);
@@ -40,13 +43,13 @@ const Results = ({ className, newErrorModal, setNewErrorModal, ...rest }) => {
   const [totalPage, setTotalPage] = useState(0);
   const [totalItems, setTotalItems] = useState(0);
   const [listLoading, setListLoading] = useState(true);
-  const [selectedError, setSelectedError] = useState({});
+  const [selectedObject, setSelectedObject] = useState({});
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const [newErrorLoading, setNewErrorLoading] = useState(false);
-  const [newError, setNewError] = useState({
-    maxErrorNum: '',
-    errorType: ''
+  const [newObjectLoading, setNewObjectLoading] = useState(false);
+  const [newObject, setNewObject] = useState({
+    erpName: '',
+    whitePrint: ''
   });
 
   useEffect(() => {
@@ -64,6 +67,8 @@ const Results = ({ className, newErrorModal, setNewErrorModal, ...rest }) => {
         setListLoading(false);
       } else if (data.statusCode == 401) {
         setProductObjectList([]);
+        setListLoading(false);
+      } else {
         setListLoading(false);
       }
     });
@@ -86,52 +91,82 @@ const Results = ({ className, newErrorModal, setNewErrorModal, ...rest }) => {
     }
   };
 
-//   const handleDeleteError = () => {
-//     setDeleteLoading(true);
-//     deleteQCError(selector.access_token, selectedError.id).then(data => {
-//       if (data.statusCode == 200) {
-//         setDeleteLoading(false);
-//         setOpenDeleteModal(false);
-//         Toastify.success('خطای مورد نظر با موفقیت حذف شد.');
-//       } else if (data.statusCode == 401) {
-//         setDeleteLoading(false);
-//         setOpenDeleteModal(false);
-//       } else {
-//         setDeleteLoading(false);
-//         setOpenDeleteModal(false);
-//         Toastify.error('مشکلی پیش آمد. لطفا دوباره تلاش کنید.');
-//       }
-//       getErrors();
-//     });
-//   };
+  const handleDeleteObject = () => {
+    setDeleteLoading(true);
+    deleteProductObject(selector.access_token, selectedObject.id).then(data => {
+      if (data.statusCode == 200) {
+        setDeleteLoading(false);
+        setOpenDeleteModal(false);
+        Toastify.success('object مورد نظر با موفقیت حذف شد.');
+      } else if (data.statusCode == 401) {
+        setDeleteLoading(false);
+        setOpenDeleteModal(false);
+      } else {
+        setDeleteLoading(false);
+        setOpenDeleteModal(false);
+        Toastify.error('مشکلی پیش آمد. لطفا دوباره تلاش کنید.');
+      }
+      getObjects();
+    });
+    setSelectedObject({});
+  };
 
-//   const handleNewErrorChange = event => {
-//     if (event.target.name == 'errorType') {
-//       setNewError({ ...newError, errorType: event.target.value });
-//     } else {
-//       setNewError({ ...newError, maxErrorNum: event.target.value });
-//     }
-//   };
+  const handleNewObjectFields = event => {
+    if (event.target.name == 'erpName') {
+      setNewObject({ ...newObject, erpName: event.target.value });
+    } else {
+      setNewObject({ ...newObject, whitePrint: event.target.value });
+    }
+  };
 
-//   const addNewQcError = () => {
-//     setNewErrorLoading(true);
-//     newQCError(
-//       selector.access_token,
-//       newError.errorType,
-//       newError.maxErrorNum
-//     ).then(data => {
-//       setNewErrorModal(false);
-//       setNewErrorLoading(false);
-//       if (data.statusCode == 200) {
-//         Toastify.success('خطای جدید با موفقیت اضافه شد.');
-//         setNewError({ errorType: '', maxErrorNum: '' });
-//       } else if (data.statusCode == 401) {
-//       } else {
-//         Toastify.error('مشکلی پیش آمد. لطفا دوباره تلاش کنید.');
-//       }
-//       getErrors();
-//     });
-//   };
+  const addNewObject = () => {
+    setNewObjectLoading(true);
+    newProductObject(
+      selector.access_token,
+      newObject.erpName,
+      newObject.whitePrint
+    ).then(data => {
+      setModalPurpose('');
+      setNewObjectLoading(false);
+      if (data.statusCode == 200) {
+        Toastify.success('object جدید با موفقیت اضافه شد.');
+        setNewObject({ erpName: '', whitePrint: '' });
+        getObjects();
+      } else if (data.statusCode == 401) {
+      } else {
+        Toastify.error('مشکلی پیش آمد. لطفا دوباره تلاش کنید.');
+      }
+    });
+  };
+
+  const handeEditObjectFields = event => {
+    if (event.target.name == 'erpName') {
+      setSelectedObject({ ...selectedObject, erpName: event.target.value });
+    } else {
+      setSelectedObject({ ...selectedObject, whitePrint: event.target.value });
+    }
+  };
+
+  const handleEditObject = () => {
+    setNewObjectLoading(true);
+    editProductObject(
+      selector.access_token,
+      selectedObject.id,
+      selectedObject.erpName,
+      selectedObject.whitePrint
+    ).then(data => {
+      if (data.statusCode == 200) {
+        Toastify.success('object با موفقیت به روزرسانی شد.');
+        setNewObjectLoading(false);
+        setModalPurpose('');
+        setSelectedObject({});
+        getObjects();
+      } else if (data.statusCode == 401) {
+      } else {
+        Toastify.error('مشکلی پیش آمد. لطفا دوباره تلاش کنید.');
+      }
+    });
+  };
 
   return listLoading ? (
     <div
@@ -142,7 +177,7 @@ const Results = ({ className, newErrorModal, setNewErrorModal, ...rest }) => {
         justifyContent: 'center'
       }}
     >
-      <CircularProgress/>
+      <CircularProgress />
     </div>
   ) : (
     <Card className={clsx(classes.root, className)} {...rest}>
@@ -151,26 +186,48 @@ const Results = ({ className, newErrorModal, setNewErrorModal, ...rest }) => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>ID</TableCell>
-                <TableCell>ERP Name</TableCell>
-                <TableCell>White Print</TableCell>
-                <TableCell>Versions</TableCell>
+                <TableCell align="center">ID</TableCell>
+                <TableCell align="center">ERP Name</TableCell>
+                <TableCell align="center">White Print</TableCell>
+                <TableCell align="center">Versions</TableCell>
+                <TableCell align="center">به روزرسانی object</TableCell>
+                <TableCell align="center">حذف object</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {productObjectList.slice(0, limit).map(object => (
                 <TableRow hover key={object.id}>
-                  <TableCell>{object.id}</TableCell>
-                  <TableCell>{object.erpName}</TableCell>
-                  <TableCell>{object.whitePrint}</TableCell>
-                  <TableCell>
+                  <TableCell align="center">{object.id}</TableCell>
+                  <TableCell align="center">{object.erpName}</TableCell>
+                  <TableCell align="center">{object.whitePrint}</TableCell>
+                  <TableCell align="center">
                     <Button
                       onClick={() => {
                         setOpenDeleteModal(true);
-                        setSelectedError(object);
+                        setSelectedObject(object);
                       }}
                     >
-                      <List size="20"/>
+                      <List size="20" />
+                    </Button>
+                  </TableCell>
+                  <TableCell align="center">
+                    <Button
+                      onClick={() => {
+                        setSelectedObject(object);
+                        setModalPurpose('edit');
+                      }}
+                    >
+                      <Edit size="20" />
+                    </Button>
+                  </TableCell>
+                  <TableCell align="center">
+                    <Button
+                      onClick={() => {
+                        setSelectedObject(object);
+                        setOpenDeleteModal(true);
+                      }}
+                    >
+                      <Trash size="20" />
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -190,8 +247,7 @@ const Results = ({ className, newErrorModal, setNewErrorModal, ...rest }) => {
         nextIconButtonProps={{
           onClick: () => handlePageChange('pre')
         }}
-        labelDisplayedRows={() => {
-        }}
+        labelDisplayedRows={() => {}}
         component="div"
         count={totalItems}
         onChangePage={(event, page) => console.warn('ppppp', page)}
@@ -200,7 +256,7 @@ const Results = ({ className, newErrorModal, setNewErrorModal, ...rest }) => {
         rowsPerPage={limit}
         rowsPerPageOptions={[5, 10, 25]}
       />
-      {/* <Modal open={openDeleteModal} onClose={() => setOpenDeleteModal(false)}>
+      <Modal open={openDeleteModal} onClose={() => setOpenDeleteModal(false)}>
         <div
           style={{
             position: 'absolute',
@@ -214,7 +270,7 @@ const Results = ({ className, newErrorModal, setNewErrorModal, ...rest }) => {
           }}
         >
           <p style={{ textAlign: 'center' }}>
-            آیا از پاک کردن خطا اطمینان دارید؟
+            آیا از پاک کردن object اطمینان دارید؟
           </p>
           <div
             style={{
@@ -233,7 +289,7 @@ const Results = ({ className, newErrorModal, setNewErrorModal, ...rest }) => {
                   color="primary"
                   variant="contained"
                   style={{ marginLeft: 10 }}
-                  onClick={handleDeleteError}
+                  onClick={handleDeleteObject}
                 >
                   بله
                 </Button>
@@ -241,7 +297,10 @@ const Results = ({ className, newErrorModal, setNewErrorModal, ...rest }) => {
                   color="primary"
                   variant="contained"
                   style={{ marginRight: 10 }}
-                  onClick={() => setOpenDeleteModal(false)}
+                  onClick={() => {
+                    setSelectedObject({});
+                    setOpenDeleteModal(false);
+                  }}
                 >
                   خیر
                 </Button>
@@ -250,7 +309,10 @@ const Results = ({ className, newErrorModal, setNewErrorModal, ...rest }) => {
           </div>
         </div>
       </Modal>
-      <Modal open={newErrorModal} onClose={() => setNewErrorModal(false)}>
+      <Modal
+        open={modalPurpose.length > 0 ? true : false}
+        onClose={() => setModalPurpose('')}
+      >
         <div
           style={{
             backgroundColor: '#fff',
@@ -261,41 +323,59 @@ const Results = ({ className, newErrorModal, setNewErrorModal, ...rest }) => {
             transform: 'translate(-50%, -50%)'
           }}
         >
-          <h4>ثبت خطا</h4>
+          {modalPurpose == 'new' ? (
+            <h4>ثبت object</h4>
+          ) : (
+            <h4>به روزرسانی object</h4>
+          )}
           <br />
           <hr />
           <br />
           <TextField
             fullWidth
-            label="نوع خطا"
+            label="ERP Name"
             margin="normal"
-            name="errorType"
-            onChange={event => handleNewErrorChange(event)}
+            name="erpName"
+            onChange={event =>
+              modalPurpose == 'new'
+                ? handleNewObjectFields(event)
+                : handeEditObjectFields(event)
+            }
             type="text"
-            value={newError.errorType}
+            value={
+              modalPurpose == 'new' ? newObject.erpName : selectedObject.erpName
+            }
             variant="outlined"
           />
           <TextField
             fullWidth
-            label="حداکثر تعداد خطا"
+            label="White Print"
             margin="normal"
-            name="maxErrorNum"
-            onChange={event => handleNewErrorChange(event)}
+            name="whitePrint"
+            onChange={event =>
+              modalPurpose == 'new'
+                ? handleNewObjectFields(event)
+                : handeEditObjectFields(event)
+            }
             type="text"
-            value={newError.maxErrorNum}
+            value={
+              modalPurpose == 'new'
+                ? newObject.whitePrint
+                : selectedObject.whitePrint
+            }
             variant="outlined"
           />
           <Box my={2}>
             <Button
               color="primary"
-              disabled={newErrorLoading}
+              disabled={newObjectLoading}
               fullWidth
               size="large"
               type="submit"
               variant="contained"
-              onClick={addNewQcError}
+              onClick={modalPurpose=="new" ? addNewObject : handleEditObject}
             >
-              {newErrorLoading ? (
+              {newObjectLoading ? (
                 <CircularProgress color="whit" />
               ) : (
                 <p>ثبت</p>
@@ -303,7 +383,7 @@ const Results = ({ className, newErrorModal, setNewErrorModal, ...rest }) => {
             </Button>
           </Box>
         </div>
-      </Modal> */}
+      </Modal>
     </Card>
   );
 };

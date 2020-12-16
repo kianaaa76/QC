@@ -21,7 +21,7 @@ export const checkToken = token => {
   }).then(response => response.json());
 };
 
-export const getAllQCErrors = (token, page, take) => {
+export const getAllErrorTypes = (token, page, take) => {
   return fetch(`${LOCAL_HOST}/Admin/QC/ErrorType?Page=${page}&Take=${take}`, {
     method: 'GET',
     headers: {
@@ -31,9 +31,19 @@ export const getAllQCErrors = (token, page, take) => {
   }).then(response => response.json());
 };
 
+export const getAllQCErrors = (token, page, take) => {
+  return fetch(`${LOCAL_HOST}/Admin/QC/Errors?Page=${page}&Take=${take}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `bearer ${token}`
+    }
+  }).then(response => response.json());
+};
+
 export const deleteQCError = (token, id) => {
-  const msg = JSON.stringify({ errorTypeId: id });
-  return fetch(`${LOCAL_HOST}/Admin/QC/ErrorType/DeleteErrorType`, {
+  const msg = JSON.stringify({ errorId: id });
+  return fetch(`${LOCAL_HOST}/Admin/QC/Errors/DeleteError`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -43,7 +53,7 @@ export const deleteQCError = (token, id) => {
   }).then(response => response.json());
 };
 
-export const newQCError = (token, errorType, maxErrorNum) => {
+export const newErrorType = (token, errorType, maxErrorNum) => {
   const msg = JSON.stringify({
     errorType: errorType,
     maximumNumberOfErrors: parseInt(maxErrorNum)
@@ -72,7 +82,7 @@ export const SearchError = (token, errorType) => {
   }).then(response => response.json());
 };
 
-export const getProductLinesforDropDown = (token) => {
+export const getProductLinesforDropDown = token => {
   return fetch(`${LOCAL_HOST}/Admin/QC/ProductLine`, {
     method: 'GET',
     headers: {
@@ -83,43 +93,168 @@ export const getProductLinesforDropDown = (token) => {
 };
 
 export const getStationsOfProductLineIdForDropDown = (token, productLineId) => {
-  return fetch(`${LOCAL_HOST}/Admin/QC/ProductLine/WorkStations?ProductLineId=${productLineId}`, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `bearer ${token}`
+  return fetch(
+    `${LOCAL_HOST}/Admin/QC/ProductLine/WorkStations?ProductLineId=${productLineId}`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `bearer ${token}`
+      }
     }
-  }).then(response => response.json());
+  ).then(response => response.json());
 };
-
 
 export const getErrortypesOfAProductLine = (token, productLineId) => {
-  return fetch(`${LOCAL_HOST}/Admin/QC/ProductLine/ErrorTypesForProductLine?ProductLineId=${productLineId}`, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `bearer ${token}`
+  return fetch(
+    `${LOCAL_HOST}/Admin/QC/ProductLine/ErrorTypesForProductLine?ProductLineId=${productLineId}`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `bearer ${token}`
+      }
     }
-  }).then(response => response.json());
+  ).then(response => response.json());
 };
 
-
 export const getMiddleProductsOfAProductLine = (token, productLineId) => {
-  return fetch(`${LOCAL_HOST}/Admin/QC/ProductLine/GetMiddleProducts?ProductLineId=${productLineId}`, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `bearer ${token}`
+  return fetch(
+    `${LOCAL_HOST}/Admin/QC/ProductLine/GetMiddleProducts?ProductLineId=${productLineId}`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `bearer ${token}`
+      }
     }
-  }).then(response => response.json());
+  ).then(response => response.json());
 };
 
 export const getProductObjects = (token, page, take) => {
-  return fetch(`${LOCAL_HOST}/Admin/Qc/ProductObject?Page=${page}&Take=${take}`, {
+  return fetch(
+    `${LOCAL_HOST}/Admin/Qc/ProductObject?Page=${page}&Take=${take}`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `bearer ${token}`
+      }
+    }
+  ).then(response => response.json());
+};
+
+export const newProductObject = (token, erpName, whitePrint)=>{
+  const msg = JSON.stringify({
+    erpName,
+    whitePrint
+  });
+  return fetch(
+    `${LOCAL_HOST}/Admin/Qc/ProductObject/NewProductObject`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `bearer ${token}`
+      },
+      body: msg
+    }
+  ).then(response => response.json());
+}
+
+export const deleteProductObject = (token, objectId)=>{
+  const msg = JSON.stringify({
+    objectId
+  });
+  return fetch(
+    `${LOCAL_HOST}/Admin/Qc/ProductObject/DeleteObject`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `bearer ${token}`
+      },
+      body: msg
+    }
+  ).then(response => response.json());
+}
+
+export const editProductObject = (token,objectId, erpName, whitePrint)=>{
+  const msg = JSON.stringify({
+    objectId,
+    erpName,
+    whitePrint
+  });
+  return fetch(
+    `${LOCAL_HOST}/Admin/Qc/ProductObject/EditObject`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `bearer ${token}`
+      },
+      body: msg
+    }
+  ).then(response => response.json());
+}
+
+export const getAllObjects = (token, page) => {
+  return fetch(`${LOCAL_HOST}/Admin/Qc/Errors/Objects?Page=${page}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `bearer ${token}`
     }
-  }).then((response) => response.json());
+  }).then(response => response.json());
+};
+
+export const getObjectVersions = (token, objectId) => {
+  return fetch(
+    `${LOCAL_HOST}/Admin/Qc/Errors/ObjectVersions?objectId=${objectId}`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `bearer ${token}`
+      }
+    }
+  ).then(response => response.json());
+};
+
+export const newQCError = (
+  token,
+  productLineId,
+  objectId,
+  count,
+  description,
+  registeredDate,
+  isMiddleProductOutSourced,
+  errorTypeId,
+  middleProductId,
+  workStationId,
+  objectVersionId
+) => {
+  const msg = JSON.stringify({
+    productLineId,
+    objectId,
+    count: parseInt(count),
+    description,
+    registeredDate,
+    isMiddleProductOutSourced,
+    errorTypeId,
+    middleProductId,
+    workStationId,
+    objectVersionId
+  });
+  return fetch(
+    `${LOCAL_HOST}/Admin/Qc/Errors/NewError`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `bearer ${token}`
+      },
+      body: msg
+    }
+  ).then(response => response.json());
 };

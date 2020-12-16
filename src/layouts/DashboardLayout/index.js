@@ -34,8 +34,6 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const DashboardLayout = () => {
-  // const tabs = useParams('tabs');
-  // console.warn('tabs', tabs);
   const classes = useStyles();
   const [isMobileNavOpen, setMobileNavOpen] = useState(false);
 

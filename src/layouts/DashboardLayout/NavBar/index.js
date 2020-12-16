@@ -104,19 +104,19 @@ const selector = useSelector(state=>state);
     switch (key) {
       case 'ErrorType':
         return {
-          href: '/app/qcErrors',
+          href: '/app/errorType',
           icon: AlertCircleIcon,
-          title: 'مدیریت خطاهای QC'
+          title: 'مدیریت نوع خطا'
         };
       case 'ProductLine':
         return {
           href: '/app/products',
           icon: ShoppingBagIcon,
-          title: 'مدیریت خط تولید QC'
+          title: 'مدیریت خط تولید'
         };
       case 'QcError':
         return {
-          href: '/app/errorType',
+          href: '/app/qcErrors',
           icon: ShoppingBagIcon,
           title: 'خطاها'
         };
@@ -124,7 +124,7 @@ const selector = useSelector(state=>state);
         return {
           href: '/app/productObject',
           icon: ShoppingBagIcon,
-          title: 'product object'
+          title: 'مدیریت object'
         };
       case 'AdminManager':
         return {

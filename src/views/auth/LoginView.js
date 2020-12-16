@@ -54,7 +54,7 @@ const LoginView = () => {
             access_token: data.data.access_token,
             refresh_token: data.data.refresh_token
           });
-          navigate("/app/dashboard");
+          navigate("/app");
           setLoginLoading(false);
         } else {
           setLoginLoading(false);

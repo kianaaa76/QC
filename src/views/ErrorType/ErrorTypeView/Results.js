@@ -15,18 +15,13 @@ import {
   makeStyles,
   CircularProgress,
   Modal,
-  TextField,
-  Select,
-  MenuItem,
-  Checkbox
+  TextField
 } from '@material-ui/core';
 import Toastify from '../../../utils/toastify';
 import {
   getAllQCErrors,
   deleteQCError,
-  newQCError,
-  getErrortypesOfAProductLine,
-  getMiddleProductsOfAProductLine
+  newErrorType
 } from '../../../redux/actions/api';
 import { useSelector } from 'react-redux';
 import { Trash } from 'react-feather';
@@ -38,15 +33,7 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-const Results = ({
-  className,
-  newErrorModal,
-  setNewErrorModal,
-  selectedProductLine,
-  selectedStation,
-  selectedDate,
-  ...rest
-}) => {
+const Results = ({ className, newErrorModal, setNewErrorModal, ...rest }) => {
   const selector = useSelector(state => state);
   const classes = useStyles();
   const [errorList, setErrorList] = useState([]);
@@ -59,16 +46,6 @@ const Results = ({
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [newErrorLoading, setNewErrorLoading] = useState(false);
-  const [
-    selectedErrorTypeOfProductLine,
-    setSelectedErrorTypeOFPRoductLine
-  ] = useState('');
-  const [
-    selectedMiddleProductOfProductLine,
-    setSelectedMiddleProductOfProductLine
-  ] = useState('');
-  const [errorTypeList, setErrorTypeList] = useState([]);
-  const [middleProductList, setMiddleProductList] = useState([]);
   const [newError, setNewError] = useState({
     maxErrorNum: '',
     errorType: ''
@@ -78,56 +55,27 @@ const Results = ({
     getErrors();
   }, [page, limit]);
 
-  useEffect(() => {
-    console.warn("sSSSS", selector.selectedProductLineOfErrorTab);
-    getErrortypesOfAProductLine(
-      selector.access_token,
-      selector.selectedProductLineOfErrorTab
-    ).then(data => {
-      if (data.statusCode === 200) {
-        setErrorTypeList(data.data);
-      } else {
-        setErrorTypeList([]);
-        //do something in case of not getting success!
-      }
-    });
-
-    getMiddleProductsOfAProductLine(
-      selector.access_token,
-      selector.selectedProductLineOfErrorTab
-    ).then(data => {
-      if (data.statusCode === 200) {
-        setMiddleProductList(data.data);
-      } else {
-        setMiddleProductList([]);
-        //do something in case of not getting success!
-      }
-    });
-  }, [selector]);
-
   const getErrors = () => {
     setListLoading(true);
     getAllQCErrors(selector.access_token, page, limit).then(data => {
-      if (data.statusCode === 200) {
+      if (data.statusCode == 200) {
         setErrorList(data.data.items);
         setTotalPage(data.data.totalPages);
         setTotalItems(data.data.totalItems);
         setListLoading(false);
-      } else if (data.statusCode === 401) {
+      } else if (data.statusCode == 401) {
         setErrorList([]);
         setListLoading(false);
       }
     });
   };
 
-  useEffect(() => {}, []);
-
   const handleLimitChange = event => {
     setLimit(event.target.value);
   };
 
   const handlePageChange = state => {
-    if (state === 'pre') {
+    if (state == 'pre') {
       if (page > 1) {
         setPage(page - 1);
       }
@@ -141,11 +89,11 @@ const Results = ({
   const handleDeleteError = () => {
     setDeleteLoading(true);
     deleteQCError(selector.access_token, selectedError.id).then(data => {
-      if (data.statusCode === 200) {
+      if (data.statusCode == 200) {
         setDeleteLoading(false);
         setOpenDeleteModal(false);
         Toastify.success('خطای مورد نظر با موفقیت حذف شد.');
-      } else if (data.statusCode === 401) {
+      } else if (data.statusCode == 401) {
         setDeleteLoading(false);
         setOpenDeleteModal(false);
       } else {
@@ -158,46 +106,30 @@ const Results = ({
   };
 
   const handleNewErrorChange = event => {
-    if (event.target.name === 'errorType') {
+    if (event.target.name == 'errorType') {
       setNewError({ ...newError, errorType: event.target.value });
     } else {
       setNewError({ ...newError, maxErrorNum: event.target.value });
     }
   };
 
-  const addNewQcError = () => {
+  const addNewErrorType = () => {
     setNewErrorLoading(true);
-    newQCError(
+    newErrorType(
       selector.access_token,
       newError.errorType,
       newError.maxErrorNum
     ).then(data => {
       setNewErrorModal(false);
       setNewErrorLoading(false);
-      if (data.statusCode === 200) {
+      if (data.statusCode == 200) {
         Toastify.success('خطای جدید با موفقیت اضافه شد.');
         setNewError({ errorType: '', maxErrorNum: '' });
-      } else if (data.statusCode === 401) {
+      } else if (data.statusCode == 401) {
       } else {
         Toastify.error('مشکلی پیش آمد. لطفا دوباره تلاش کنید.');
       }
       getErrors();
-    });
-  };
-
-  const handleChangeErrorTypeOfProductLine = event => {
-    errorTypeList.map(item => {
-      if (item.errorId === event.target.value) {
-        setSelectedErrorTypeOFPRoductLine(item);
-      }
-    });
-  };
-
-  const handleChangeMiddleProduct = event => {
-    middleProductList.map(item => {
-      if (item.id === event.target.value) {
-        setSelectedMiddleProductOfProductLine(item);
-      }
     });
   };
 
@@ -332,186 +264,24 @@ const Results = ({
           <br />
           <hr />
           <br />
-          <Box display="flex" flexDirection="row">
-            <Box
-              display="flex"
-              flexDirection="row"
-              style={{ marginLeft: 15, marginRight: 15 }}
-            >
-              <p textAlign="right" style={{ width: 65 }}>
-                خط تولید:{' '}
-              </p>
-              <p>
-                {!!selectedProductLine && !!selectedProductLine.name
-                  ? selectedProductLine.name
-                  : '-'}
-              </p>
-            </Box>
-            <Box
-              display="flex"
-              flexDirection="row"
-              style={{ marginLeft: 15, marginRight: 15 }}
-            >
-              <p textAlign="right" style={{ width: 65 }}>
-                ایستگاه:{' '}
-              </p>
-              <p>{!!selectedStation ? selectedStation.name : '-'}</p>
-            </Box>
-            <Box
-              display="flex"
-              flexDirection="row"
-              style={{ marginLeft: 15, marginRight: 15 }}
-            >
-              <p textAlign="right" style={{ width: 65 }}>
-                تاریخ:{' '}
-              </p>
-              <p>{!!selectedDate ? selectedDate : '-'}</p>
-            </Box>
-          </Box>
-          <br />
-          <br />
-          <Box display="flex" flexDirection="row">
-            <Box
-              display="flex"
-              flexDirection="row"
-              style={{ marginLeft: 30, marginRight: 15, alignItems: 'center' }}
-            >
-              <p textAlign="right" style={{ width: 100 }}>
-                نوع خطا:
-              </p>
-              <Select
-                labelId="label"
-                id="select"
-                value={
-                  !!selectedErrorTypeOfProductLine
-                    ? selectedErrorTypeOfProductLine.errorId
-                    : ''
-                }
-                style={{ minWidth: 100 }}
-                onChange={handleChangeErrorTypeOfProductLine}
-              >
-                {!!errorTypeList && errorTypeList.length > 0 ? (
-                  errorTypeList.map(item => (
-                    <MenuItem value={item.errorId}>{item.errorType}</MenuItem>
-                  ))
-                ) : (
-                  <MenuItem value="" disabled>
-                    خطایی موجود نیست.
-                  </MenuItem>
-                )}
-              </Select>
-            </Box>
-            <Box
-              display="flex"
-              flexDirection="row"
-              style={{ marginLeft: 15, marginRight: 30, alignItems: 'center' }}
-            >
-              <p textAlign="right" style={{ width: 100 }}>
-                تعداد خطا:
-              </p>
-              <Select
-                labelId="label"
-                id="select"
-                value="20"
-                style={{ minWidth: 100 }}
-              >
-                <MenuItem value="10">Ten</MenuItem>
-                <MenuItem value="20">Twenty</MenuItem>
-              </Select>
-            </Box>
-          </Box>
-          <br />
-          <br />
-          <Box
-            display="flex"
-            flexDirection="row"
-            style={{ alignItems: 'center' }}
-          >
-            <Box
-              display="flex"
-              flexDirection="row"
-              style={{ marginLeft: 30, marginRight: 15, alignItems: 'center' }}
-            >
-              <p textAlign="right" style={{ width: 100 }}>
-                محصول میانی:{' '}
-              </p>
-              <Select
-                labelId="label"
-                id="select"
-                value={
-                  !!selectedMiddleProductOfProductLine
-                    ? selectedMiddleProductOfProductLine.id
-                    : ''
-                }
-                style={{ minWidth: 100 }}
-                onChange={handleChangeMiddleProduct}
-              >
-                {!!middleProductList && middleProductList.length>0 ?
-                  middleProductList.map(item => (
-                    <MenuItem value={item.id}>{item.name}</MenuItem>
-                  )):(
-                    <MenuItem value="" disabled>محصول میانی موجود نیست.</MenuItem>
-                  )}
-              </Select>
-            </Box>
-
-            <Checkbox
-              value="checkedA"
-              inputProps={{ 'aria-label': 'Checkbox A' }}
-            />
-            <p>محصول میانی برون سپاری شده</p>
-          </Box>
-          <br />
-          <br />
-          <Box display="flex" flexDirection="row">
-            <Box
-              display="flex"
-              flexDirection="row"
-              style={{ marginLeft: 30, marginRight: 15, alignItems: 'center' }}
-            >
-              <p textAlign="right" style={{ width: 100 }}>
-                Object:
-              </p>
-              <Select
-                labelId="label"
-                id="select"
-                value="20"
-                style={{ minWidth: 100 }}
-              >
-                <MenuItem value="10">Ten</MenuItem>
-                <MenuItem value="20">Twenty</MenuItem>
-                <MenuItem value="30">Ten</MenuItem>
-                <MenuItem value="40">Twenty</MenuItem>
-              </Select>
-            </Box>
-            <Box
-              display="flex"
-              flexDirection="row"
-              style={{ marginLeft: 15, marginRight: 30, alignItems: 'center' }}
-            >
-              <p textAlign="right" style={{ width: 100 }}>
-                Version:
-              </p>
-              <Select
-                labelId="label"
-                id="select"
-                value="20"
-                style={{ minWidth: 100 }}
-              >
-                <MenuItem value="10">Ten</MenuItem>
-                <MenuItem value="20">Twenty</MenuItem>
-              </Select>
-            </Box>
-          </Box>
-          <br />
           <TextField
-            multiline
             fullWidth
-            label="توضیحات"
+            label="نوع خطا"
             margin="normal"
-            name="description"
-            onChange={event => {}}
+            name="errorType"
+            onChange={event => handleNewErrorChange(event)}
             type="text"
+            value={newError.errorType}
+            variant="outlined"
+          />
+          <TextField
+            fullWidth
+            label="حداکثر تعداد خطا"
+            margin="normal"
+            name="maxErrorNum"
+            onChange={event => handleNewErrorChange(event)}
+            type="text"
+            value={newError.maxErrorNum}
             variant="outlined"
           />
           <Box my={2}>
@@ -522,9 +292,13 @@ const Results = ({
               size="large"
               type="submit"
               variant="contained"
-              onClick={addNewQcError}
+              onClick={addNewErrorType}
             >
-              {newErrorLoading ? <CircularProgress color="whit" /> : <p>ثبت</p>}
+              {newErrorLoading ? (
+                <CircularProgress color="whit" />
+              ) : (
+                <p>ثبت</p>
+              )}
             </Button>
           </Box>
         </div>
@@ -534,7 +308,8 @@ const Results = ({
 };
 
 Results.propTypes = {
-  className: PropTypes.string
+  className: PropTypes.string,
+  customers: PropTypes.array.isRequired
 };
 
 export default Results;
