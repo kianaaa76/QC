@@ -16,17 +16,21 @@ const useStyles = makeStyles(theme => ({
 const ListView = () => {
   const classes = useStyles();
   const [modalMode, setModalMode] = useState('');
+  const [searchValue, setSearchValue] = useState('');
 
   return (
     <Page className={classes.root} title="Errors">
       <Container maxWidth={false}>
         <Toolbar
           setModalPurpose={value => setModalMode(value)}
+          searchName={searchValue}
+          setSearchName={name=>setSearchValue(name)}
         />
         <Box mt={3}>
           <Results
             modalPurpose={modalMode}
             setModalPurpose={value => setModalMode(value)}
+            searchName={searchValue}
           />
         </Box>
       </Container>

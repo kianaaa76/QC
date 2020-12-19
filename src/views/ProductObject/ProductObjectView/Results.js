@@ -10,7 +10,6 @@ import {
   TableBody,
   TableCell,
   TableHead,
-  TablePagination,
   TableRow,
   makeStyles,
   CircularProgress,
@@ -22,10 +21,16 @@ import {
   getProductObjects,
   deleteProductObject,
   newProductObject,
-  editProductObject
+  editProductObject,
+  getProductObjectVersions,
+  deleteObjectVersion,
+  addObjectVersion,
+  editObjectVersion,
+  searchProductObject
 } from 'src/redux/actions/api';
 import { useSelector } from 'react-redux';
-import { List, Trash, Edit } from 'react-feather';
+import { List, Trash, Edit, Check, X, Plus } from 'react-feather';
+import TablePagination from '../../../utils/TablePagination';
 
 const useStyles = makeStyles(theme => ({
   root: {},
@@ -34,60 +39,126 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-const Results = ({ className, modalPurpose, setModalPurpose, ...rest }) => {
+const Results = ({
+  className,
+  modalPurpose,
+  setModalPurpose,
+  searchName,
+  ...rest
+}) => {
   const selector = useSelector(state => state);
   const classes = useStyles();
   const [productObjectList, setProductObjectList] = useState([]);
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const [totalPage, setTotalPage] = useState(0);
-  const [totalItems, setTotalItems] = useState(0);
+  const [objectPage, setObjectPage] = useState(1);
+  const [objectLimit, setObjectLimit] = useState(10);
+  const [objectTotalPage, setObjectTotalPage] = useState(0);
+  const [objectTotalItems, setObjectTotalItems] = useState(0);
+  const [versionPage, setVersionPage] = useState(1);
+  const [versionLimit, setVersionLimit] = useState(10);
+  const [versionTotalItems, setVersionTotalItems] = useState(0);
+  const [versionTotalPages, setVersionTotalPages] = useState(0);
   const [listLoading, setListLoading] = useState(true);
   const [selectedObject, setSelectedObject] = useState({});
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [newObjectLoading, setNewObjectLoading] = useState(false);
+  const [openVersionsModal, setOpenVersionsModal] = useState(false);
+  const [versionTableLoading, setVersionTableLoading] = useState(true);
+  const [versionList, setVersionList] = useState([]);
   const [newObject, setNewObject] = useState({
     erpName: '',
     whitePrint: ''
   });
+  const [deletingVersion, setDeletingVersion] = useState(null);
+  const [deleteVersionLoading, setDeleteVersionLoading] = useState(false);
+  const [openNewVersionModal, setOpenNewVersionModal] = useState(false);
+  const [newVersionName, setNewVersionName] = useState('');
+  const [newVersionLoading, setNewVersionLoading] = useState(false);
+  const [edittingVersion, setEdittingVersion] = useState(null);
+  const [editVersionLoading, setEditVersionLoading] = useState(false);
+  const [edittingVersionName, setEdittingVersionName] = useState('');
 
   useEffect(() => {
     getObjects();
-  }, []);
+  }, [objectLimit, objectPage]);
+
+  useEffect(() => {
+    const abortController = new AbortController();
+    if (searchName.length >= 3) {
+      setListLoading(true);
+      searchProductObject(
+        selector.access_token,
+        searchName,
+        abortController
+      ).then(data => {
+        if (data.statusCode == 200) {
+          setProductObjectList(data.data);
+          setListLoading(false);
+        } else {
+          setListLoading(false);
+          Toastify.error(data.data);
+        }
+      });
+    } else if (searchName == "") {
+      getObjects();
+    }else {
+      setListLoading(false);
+    }
+    return function cancel() {
+      abortController.abort();
+    };
+  }, [searchName]);
 
   const getObjects = () => {
     setListLoading(true);
-    getProductObjects(selector.access_token, page, limit).then(data => {
-      console.warn('KKKK', data);
-      if (data.statusCode == 200) {
-        setProductObjectList(data.data.items);
-        setTotalPage(data.data.totalPages);
-        setTotalItems(data.data.totalItems);
-        setListLoading(false);
-      } else if (data.statusCode == 401) {
-        setProductObjectList([]);
-        setListLoading(false);
-      } else {
-        setListLoading(false);
+    getProductObjects(selector.access_token, objectPage, objectLimit).then(
+      data => {
+        if (data.statusCode == 200) {
+          setProductObjectList(data.data.items);
+          setObjectTotalPage(data.data.totalPages);
+          setObjectTotalItems(data.data.totalItems);
+          setListLoading(false);
+        } else if (data.statusCode == 401) {
+          setProductObjectList([]);
+          setListLoading(false);
+        } else {
+          setListLoading(false);
+        }
       }
-    });
+    );
   };
 
-  const handleLimitChange = event => {
-    setLimit(event.target.value);
+  const handleLimitChange = (event, table) => {
+    if (table == 'object') {
+      setObjectLimit(event.target.value);
+    } else {
+      setVersionLimit(event.target.value);
+      getVersions(selectedObject.id);
+    }
   };
 
-  const handlePageChange = state => {
-    console.warn('state', state);
-    if (state == 'pre') {
-      if (page > 1) {
-        setPage(page - 1);
+  const handlePageChange = (state, table) => {
+    if (table == 'object') {
+      if (state == 'pre') {
+        if (objectPage > 1) {
+          setObjectPage(objectPage - 1);
+        }
+      } else {
+        if (objectPage < objectTotalPage) {
+          setObjectPage(objectPage + 1);
+        }
       }
     } else {
-      if (page < totalPage) {
-        setPage(page + 1);
+      if (state == 'pre') {
+        if (versionPage > 1) {
+          setVersionLimit(versionPage - 1);
+        }
+      } else {
+        if (versionPage < versionTotalPages) {
+          setVersionPage(versionPage + 1);
+        }
       }
+      getVersions(selectedObject.id);
     }
   };
 
@@ -109,6 +180,32 @@ const Results = ({ className, modalPurpose, setModalPurpose, ...rest }) => {
       getObjects();
     });
     setSelectedObject({});
+  };
+
+  const getVersions = objectId => {
+    setVersionTableLoading(true);
+    getProductObjectVersions(
+      selector.access_token,
+      objectId,
+      versionLimit,
+      versionPage
+    ).then(data => {
+      if (data.statusCode == 200) {
+        setVersionTotalItems(data.data.totalItems);
+        setVersionTotalPages(data.data.totalPages);
+        setVersionList(data.data.items);
+        setVersionTableLoading(false);
+      } else {
+        setVersionTableLoading(false);
+        //do something!
+      }
+    });
+  };
+
+  const handleOnVersionsPress = object => {
+    setSelectedObject(object);
+    setOpenVersionsModal(true);
+    getVersions(object.id);
   };
 
   const handleNewObjectFields = event => {
@@ -168,6 +265,65 @@ const Results = ({ className, modalPurpose, setModalPurpose, ...rest }) => {
     });
   };
 
+  const handleDeleteVersion = () => {
+    setDeleteVersionLoading(true);
+    deleteObjectVersion(
+      selector.access_token,
+      selectedObject.id,
+      deletingVersion.versionId
+    ).then(data => {
+      if (data.statusCode == 200) {
+        setDeleteVersionLoading(false);
+        setDeletingVersion(null);
+        setOpenVersionsModal(false);
+        Toastify.success('نسخه object یا موفقیت حذف شد.');
+      } else {
+        setDeleteVersionLoading(false);
+        Toastify.error(data.data);
+      }
+    });
+  };
+
+  const handleAddNewVersion = () => {
+    setNewVersionLoading(true);
+    addObjectVersion(
+      selector.access_token,
+      selectedObject.id,
+      newVersionName
+    ).then(data => {
+      if (data.statusCode == 200) {
+        setNewVersionLoading(false);
+        setOpenNewVersionModal(false);
+        Toastify.success('Version جدید با موفقیت اضافه شد.');
+      } else {
+        setNewVersionLoading(false);
+        Toastify.error(data.data);
+      }
+    });
+  };
+
+  const handleEditVersion = () => {
+    setEditVersionLoading(true);
+    setEdittingVersionName(edittingVersion.versionName);
+    editObjectVersion(
+      selector.access_token,
+      selectedObject.id,
+      edittingVersion.versionId,
+      edittingVersionName
+    ).then(data => {
+      if (data.statusCode == 200) {
+        setEditVersionLoading(false);
+        setEdittingVersion(null);
+        setEdittingVersionName('');
+        Toastify.success('Version با موفقیت به روزرسانی شد.');
+        getVersions(selectedObject.id);
+      } else {
+        setEditVersionLoading(false);
+        Toastify.error(data.data);
+      }
+    });
+  };
+
   return listLoading ? (
     <div
       style={{
@@ -190,12 +346,13 @@ const Results = ({ className, modalPurpose, setModalPurpose, ...rest }) => {
                 <TableCell align="center">ERP Name</TableCell>
                 <TableCell align="center">White Print</TableCell>
                 <TableCell align="center">Versions</TableCell>
+                <TableCell align="center">افزودن Version</TableCell>
                 <TableCell align="center">به روزرسانی object</TableCell>
                 <TableCell align="center">حذف object</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {productObjectList.slice(0, limit).map(object => (
+              {productObjectList.slice(0, objectLimit).map(object => (
                 <TableRow hover key={object.id}>
                   <TableCell align="center">{object.id}</TableCell>
                   <TableCell align="center">{object.erpName}</TableCell>
@@ -203,11 +360,20 @@ const Results = ({ className, modalPurpose, setModalPurpose, ...rest }) => {
                   <TableCell align="center">
                     <Button
                       onClick={() => {
-                        setOpenDeleteModal(true);
-                        setSelectedObject(object);
+                        handleOnVersionsPress(object);
                       }}
                     >
                       <List size="20" />
+                    </Button>
+                  </TableCell>
+                  <TableCell align="center">
+                    <Button
+                      onClick={() => {
+                        setSelectedObject(object);
+                        setOpenNewVersionModal(true);
+                      }}
+                    >
+                      <Plus />
                     </Button>
                   </TableCell>
                   <TableCell align="center">
@@ -237,24 +403,12 @@ const Results = ({ className, modalPurpose, setModalPurpose, ...rest }) => {
         </Box>
       </PerfectScrollbar>
       <TablePagination
-        backIconButtonProps={{
-          onClick: () => handlePageChange('next')
-        }}
-        nextIconButtonProps={{ disabled: false }}
-        backIconButtonProps={{ disabled: false }}
-        backIconButtonText="بعدی"
-        nextIconButtonText="قبلی"
-        nextIconButtonProps={{
-          onClick: () => handlePageChange('pre')
-        }}
-        labelDisplayedRows={() => {}}
-        component="div"
-        count={totalItems}
-        onChangePage={(event, page) => console.warn('ppppp', page)}
-        onChangeRowsPerPage={handleLimitChange}
-        page={page}
-        rowsPerPage={limit}
-        rowsPerPageOptions={[5, 10, 25]}
+        currentPage={objectPage}
+        totalPages={objectTotalPage}
+        take={objectLimit}
+        changePage={state => handlePageChange(state, 'object')}
+        changeTake={event => handleLimitChange(event, 'object')}
+        totalItems={objectTotalItems}
       />
       <Modal open={openDeleteModal} onClose={() => setOpenDeleteModal(false)}>
         <div
@@ -373,7 +527,7 @@ const Results = ({ className, modalPurpose, setModalPurpose, ...rest }) => {
               size="large"
               type="submit"
               variant="contained"
-              onClick={modalPurpose=="new" ? addNewObject : handleEditObject}
+              onClick={modalPurpose == 'new' ? addNewObject : handleEditObject}
             >
               {newObjectLoading ? (
                 <CircularProgress color="whit" />
@@ -382,6 +536,167 @@ const Results = ({ className, modalPurpose, setModalPurpose, ...rest }) => {
               )}
             </Button>
           </Box>
+        </div>
+      </Modal>
+      <Modal
+        open={openVersionsModal}
+        onClose={() => setOpenVersionsModal(false)}
+      >
+        <div
+          style={{
+            width: '80%',
+            height: '60%',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: '#fff',
+            padding: 20,
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            transform: 'translate(-50%, -50%)'
+          }}
+        >
+          {versionTableLoading ? (
+            <CircularProgress />
+          ) : (
+            <Box width={'100%'} height={'100%'}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell align="center">ID</TableCell>
+                    <TableCell align="center">نام نسخه</TableCell>
+                    <TableCell align="center">به روزرسانی نسخه</TableCell>
+                    <TableCell align="center">حذف نسخه</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {versionList.slice(0, versionLimit).map(version => (
+                    <TableRow hover key={version.versionId}>
+                      <TableCell align="center">{version.versionId}</TableCell>
+                      <TableCell align="center">
+                        {!!edittingVersion &&
+                        edittingVersion.versionId == version.versionId ? (
+                          <TextField
+                            defaultValue={version.versionName}
+                            onChange={event =>
+                              setEdittingVersionName(event.target.value)
+                            }
+                          />
+                        ) : (
+                          version.versionName
+                        )}
+                      </TableCell>
+                      <TableCell align="center">
+                        {editVersionLoading &&
+                        edittingVersion.versionId == version.versionId ? (
+                          <CircularProgress />
+                        ) : !!edittingVersion &&
+                          edittingVersion.versionId == version.versionId ? (
+                          <row>
+                            <Button onClick={handleEditVersion}>
+                              <Check />
+                            </Button>
+                            <Button
+                              onClick={() => {
+                                setEdittingVersion(null);
+                              }}
+                            >
+                              <X />
+                            </Button>
+                          </row>
+                        ) : (
+                          <Button
+                            onClick={() => {
+                              setEdittingVersion(version);
+                            }}
+                          >
+                            <Edit size="20" />
+                          </Button>
+                        )}
+                      </TableCell>
+                      <TableCell align="center">
+                        {deleteVersionLoading &&
+                        deletingVersion.versionId == version.versionId ? (
+                          <CircularProgress />
+                        ) : !!deletingVersion &&
+                          deletingVersion.versionId == version.versionId ? (
+                          <row>
+                            <Button onClick={handleDeleteVersion}>
+                              <Check />
+                            </Button>
+                            <Button
+                              onClick={() => {
+                                setDeletingVersion(null);
+                              }}
+                            >
+                              <X />
+                            </Button>
+                          </row>
+                        ) : (
+                          <Button
+                            onClick={() => {
+                              setDeletingVersion(version);
+                            }}
+                          >
+                            <Trash size="20" />
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              <TablePagination
+                currentPage={versionPage}
+                totalPages={versionTotalPages}
+                take={versionLimit}
+                changePage={state => handlePageChange(state, 'version')}
+                changeTake={event => handleLimitChange(event, 'version')}
+                totalItems={versionTotalItems}
+              />
+            </Box>
+          )}
+        </div>
+      </Modal>
+      <Modal
+        open={openNewVersionModal}
+        onClose={() => setOpenNewVersionModal(false)}
+      >
+        <div
+          style={{
+            backgroundColor: '#fff',
+            padding: 20,
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            transform: 'translate(-50%, -50%)'
+          }}
+        >
+          <h4>ثبت Version</h4>
+          <br />
+          <hr />
+          <TextField
+            fullWidth
+            label="Version Name"
+            margin="normal"
+            name="versionName"
+            onChange={event => setNewVersionName(event.target.value)}
+            type="text"
+            value={newVersionName}
+            variant="outlined"
+          />
+          <Button
+            color="primary"
+            disabled={newVersionLoading}
+            fullWidth
+            size="large"
+            type="submit"
+            variant="contained"
+            onClick={handleAddNewVersion}
+          >
+            {newVersionLoading ? <CircularProgress color="whit" /> : <p>ثبت</p>}
+          </Button>
         </div>
       </Modal>
     </Card>

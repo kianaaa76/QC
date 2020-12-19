@@ -18,6 +18,7 @@ import {
   makeStyles
 } from '@material-ui/core';
 import getInitials from 'src/utils/getInitials';
+import {getAllProductLines} from "src/redux/actions/api";
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -28,44 +29,18 @@ const useStyles = makeStyles((theme) => ({
 
 const Results = ({ className, customers, ...rest }) => {
   const classes = useStyles();
-  const [selectedCustomerIds, setSelectedCustomerIds] = useState([]);
-  const [limit, setLimit] = useState(10);
-  const [page, setPage] = useState(0);
+  const [selectedProductLine, setSelectedProductLine] = useState([]);
+  const [productLineLimit, setProductLineLimit] = useState(10);
+  const [stationLimit, setStattionLimit] = useState(10);
+  const [productLinePage, setProductLinePage] = useState(0);
 
-  const handleSelectAll = (event) => {
-    let newSelectedCustomerIds;
+  const handleLimitChange = (event,table) => {
+    if (table == "productLine"){
+    setProductLineLimit(event.target.value);
+    } else if (table == "station"){
 
-    if (event.target.checked) {
-      newSelectedCustomerIds = customers.map((customer) => customer.id);
-    } else {
-      newSelectedCustomerIds = [];
     }
 
-    setSelectedCustomerIds(newSelectedCustomerIds);
-  };
-
-  const handleSelectOne = (event, id) => {
-    const selectedIndex = selectedCustomerIds.indexOf(id);
-    let newSelectedCustomerIds = [];
-
-    if (selectedIndex === -1) {
-      newSelectedCustomerIds = newSelectedCustomerIds.concat(selectedCustomerIds, id);
-    } else if (selectedIndex === 0) {
-      newSelectedCustomerIds = newSelectedCustomerIds.concat(selectedCustomerIds.slice(1));
-    } else if (selectedIndex === selectedCustomerIds.length - 1) {
-      newSelectedCustomerIds = newSelectedCustomerIds.concat(selectedCustomerIds.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelectedCustomerIds = newSelectedCustomerIds.concat(
-        selectedCustomerIds.slice(0, selectedIndex),
-        selectedCustomerIds.slice(selectedIndex + 1)
-      );
-    }
-
-    setSelectedCustomerIds(newSelectedCustomerIds);
-  };
-
-  const handleLimitChange = (event) => {
-    setLimit(event.target.value);
   };
 
   const handlePageChange = (event, newPage) => {

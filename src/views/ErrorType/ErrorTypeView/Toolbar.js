@@ -62,8 +62,8 @@ const Toolbar = ({ className,setOpenModal,setSearchText,searchText, ...rest }) =
                 }}
                 placeholder=" جستجو کنید..."
                 variant="outlined"
-                onChange={event=>setSearchText(event.target.value)}
-                value={searchText}
+                onChange={event=>{}}
+                value={''}
               />
             </Box>
           </CardContent>

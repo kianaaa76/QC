@@ -144,59 +144,50 @@ export const getProductObjects = (token, page, take) => {
   ).then(response => response.json());
 };
 
-export const newProductObject = (token, erpName, whitePrint)=>{
+export const newProductObject = (token, erpName, whitePrint) => {
   const msg = JSON.stringify({
     erpName,
     whitePrint
   });
-  return fetch(
-    `${LOCAL_HOST}/Admin/Qc/ProductObject/NewProductObject`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `bearer ${token}`
-      },
-      body: msg
-    }
-  ).then(response => response.json());
-}
+  return fetch(`${LOCAL_HOST}/Admin/Qc/ProductObject/NewProductObject`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `bearer ${token}`
+    },
+    body: msg
+  }).then(response => response.json());
+};
 
-export const deleteProductObject = (token, objectId)=>{
+export const deleteProductObject = (token, objectId) => {
   const msg = JSON.stringify({
     objectId
   });
-  return fetch(
-    `${LOCAL_HOST}/Admin/Qc/ProductObject/DeleteObject`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `bearer ${token}`
-      },
-      body: msg
-    }
-  ).then(response => response.json());
-}
+  return fetch(`${LOCAL_HOST}/Admin/Qc/ProductObject/DeleteObject`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `bearer ${token}`
+    },
+    body: msg
+  }).then(response => response.json());
+};
 
-export const editProductObject = (token,objectId, erpName, whitePrint)=>{
+export const editProductObject = (token, objectId, erpName, whitePrint) => {
   const msg = JSON.stringify({
     objectId,
     erpName,
     whitePrint
   });
-  return fetch(
-    `${LOCAL_HOST}/Admin/Qc/ProductObject/EditObject`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `bearer ${token}`
-      },
-      body: msg
-    }
-  ).then(response => response.json());
-}
+  return fetch(`${LOCAL_HOST}/Admin/Qc/ProductObject/EditObject`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `bearer ${token}`
+    },
+    body: msg
+  }).then(response => response.json());
+};
 
 export const getAllObjects = (token, page) => {
   return fetch(`${LOCAL_HOST}/Admin/Qc/Errors/Objects?Page=${page}`, {
@@ -246,8 +237,36 @@ export const newQCError = (
     workStationId,
     objectVersionId
   });
+  return fetch(`${LOCAL_HOST}/Admin/Qc/Errors/NewError`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `bearer ${token}`
+    },
+    body: msg
+  }).then(response => response.json());
+};
+
+export const getProductObjectVersions = (token, objectId, take, page) => {
   return fetch(
-    `${LOCAL_HOST}/Admin/Qc/Errors/NewError`,
+    `${LOCAL_HOST}/Admin/Qc/ProductObject/ObjectVersions?ObjectId=${objectId}&Take=${take}&Page=${page}`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `bearer ${token}`
+      }
+    }
+  ).then(response => response.json());
+};
+
+export const deleteObjectVersion = (token, objectId, versionId) =>{
+  const msg = JSON.stringify({
+    objectId,
+    versionId
+  });
+  return fetch(
+    `${LOCAL_HOST}/Admin/Qc/ProductObject/DeleteVersion`,
     {
       method: 'POST',
       headers: {
@@ -257,4 +276,68 @@ export const newQCError = (
       body: msg
     }
   ).then(response => response.json());
-};
+}
+
+export const addObjectVersion = (token, productObjectId, versionName) => {
+  const msg = JSON.stringify({
+    productObjectId,
+    versionName
+  });
+  return fetch(
+    `${LOCAL_HOST}/Admin/Qc/ProductObject/NewVersion`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `bearer ${token}`
+      },
+      body: msg
+    }
+  ).then(response => response.json());
+}
+
+export const editObjectVersion = (token, objectId, versionId, versionName) =>{
+  const msg = JSON.stringify({
+    objectId,
+    versionId,
+    versionName
+  });
+  return fetch(
+    `${LOCAL_HOST}/Admin/Qc/ProductObject/EditVersion`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `bearer ${token}`
+      },
+      body: msg
+    }
+  ).then(response => response.json());
+}
+
+export const searchProductObject = (token, name, controller) =>{
+  return fetch(
+    `${LOCAL_HOST}/Admin/Qc/ProductObject/SearchObject?name=${name}`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `bearer ${token}`
+      },
+      signal: controller.signal,
+    }
+  ).then(response => response.json());
+}
+
+export const getAllProductLines = (token, page, take)=>{
+  return fetch(
+    `${LOCAL_HOST}/Admin/Qc/ProductLine?Take=${take}&Page=${page}`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `bearer ${token}`
+      },
+    }
+  ).then(response => response.json());
+}
